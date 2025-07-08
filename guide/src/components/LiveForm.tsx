@@ -43,7 +43,7 @@ export default function LiveForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className={styles.input}
-          placeholder="예: 퇴근 후 뭐 먹어야할까?"
+          placeholder="예: 아무 이야기나 할 사람?"
         />
       </label>
 
