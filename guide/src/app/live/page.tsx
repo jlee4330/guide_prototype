@@ -17,6 +17,7 @@ export default async function LivePage({
   return (
     <main style={{ padding: '3rem 1.5rem' }}>
       <h1>가이드</h1>
+      <h3>*생성된 가이드를 한번 필터링하는 알고리즘 필요하다고 생각*</h3>
 
       {/* GPT 가이드 스트림 클라이언트 컴포넌트 */}
       <LiveGuide meta={{ title, description, tags: tagList }} />
