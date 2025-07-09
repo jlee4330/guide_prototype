@@ -1,118 +1,106 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
+import styles from '@/styles/LiveGuide.module.css';
+import { useState, useCallback } from 'react';
+
 
 type Meta = { title: string; tags: string[]; description: string };
 
 export default function LiveGuide({ meta }: { meta: Meta }) {
-  const [guides, setGuides] = useState<string[]>([]); // 확정된 가이드
-  const [current, setCurrent] = useState('');          // 진행 중 문장
+  const [guides, setGuides] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState<null | { text: string; liked: boolean }>(null);
+  const [reason, setReason] = useState('');
 
+  /* GPT 가이드 받아오기 */
   const fetchGuide = useCallback(async () => {
     setLoading(true);
-    setCurrent('');            // 새 요청 전에 비우기
-
-    try {
-      const res = await fetch('/api/guide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(meta),
-      });
-      if (!res.ok) throw new Error(await res.text());
-
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let acc = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value);
-        setCurrent(acc);       // 실시간 업데이트(히스토리에 넣지 않음)
-      }
-
-      // ✅ 스트림 완료 → 히스토리에 추가 후 current 비움
-      setGuides((prev) => [acc.trim(), ...prev]);
-      setCurrent('');
-    } catch (err: any) {
-      setGuides((prev) => [`❌ 오류: ${err.message}`, ...prev]);
-      setCurrent('');
-    } finally {
-      setLoading(false);
+    const res = await fetch('/api/guide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(meta),
+    });
+    const reader = res.body!.getReader();
+    const dec = new TextDecoder();
+    let acc = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      acc += dec.decode(value);
     }
+    setGuides((p) => [acc.trim(), ...p]);
+    setLoading(false);
   }, [meta]);
 
-  useEffect(() => {
-    fetchGuide();              // 첫 마운트 시 1회
-  }, [fetchGuide]);
+  /* 피드백 저장 */
+  const submit = async () => {
+    if (!modal) return;
+    await fetch('/api/save_guide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...meta,
+        text: modal.text,
+        liked: modal.liked,
+        reason,
+      }),
+    });
+    setModal(null);
+    setReason('');
+    alert('저장 완료!');
+  };
 
   return (
-    <section style={{ marginTop: '2rem' }}>
-      {/* 버튼 */}
-      <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
-        <button
-          onClick={fetchGuide}
-          disabled={loading}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: 6,
-            border: '1px solid #cbd5e1',
-            background: loading ? '#e2e8f0' : '#f8fafc',
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? '생성 중…' : '새 가이드 받기 ↻'}
-        </button>
-      </div>
+    <section className={styles.wrapper}>
+      <button className={styles.fetchBtn} onClick={fetchGuide} disabled={loading}>
+        {loading ? '가이드 생성 중…' : '새 가이드 받기'}
+      </button>
 
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {/* 로딩 중 빈·스켈레톤 박스 */}
-        {loading && (
-          <li
-            style={{
-              marginBottom: '0.75rem',
-              padding: '0.75rem 1rem',
-              height: 24,
-              border: '1px solid #e5e7eb',
-              borderRadius: 8,
-              background: '#f8fafc',
-            }}
-          />
-        )}
-
-        {/* 스트리밍 중 문장(있을 때) */}
-        {current && !loading && (
-          <li
-            style={{
-              marginBottom: '0.75rem',
-              padding: '0.75rem 1rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: 8,
-              background: '#e8f4ff',
-              whiteSpace: 'pre-wrap',
-            }}
+      {/* 가이드 카드 */}
+      {guides.map((g) => (
+        <div key={g} className={styles.card}>
+          <p className={styles.cardText}>{g}</p>
+          <button
+            className={styles.iconBtn}
+            aria-label="좋아요"
+            onClick={() => setModal({ text: g, liked: true })}
           >
-            {current}
-          </li>
-        )}
-
-        {/* 확정된 가이드 히스토리 */}
-        {guides.map((g, i) => (
-          <li
-            key={i}
-            style={{
-              marginBottom: '0.75rem',
-              padding: '0.75rem 1rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: 8,
-              background: '#e8f4ff',
-              whiteSpace: 'pre-wrap',
-            }}
+            👍
+          </button>
+          <button
+            className={styles.iconBtn}
+            aria-label="싫어요"
+            onClick={() => setModal({ text: g, liked: false })}
           >
-            {g}
-          </li>
-        ))}
-      </ul>
+            👎
+          </button>
+        </div>
+      ))}
+
+      {/* ----- 모달 ----- */}
+      {modal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalBox}>
+            <p>{modal.liked ? '왜 좋았나요?' : '왜 별로였나요?'}</p>
+            <textarea
+              className={styles.modalTextarea}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+            <div className={styles.modalActions}>
+              <button className={styles.secondaryBtn} onClick={() => setModal(null)}>
+                취소
+              </button>
+              <button
+                className={styles.primaryBtn}
+                onClick={submit}
+                disabled={!reason.trim()}
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

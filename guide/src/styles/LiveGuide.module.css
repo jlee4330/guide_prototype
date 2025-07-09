@@ -1,0 +1,108 @@
+/* src/components/LiveGuide.module.css */
+.wrapper {
+    margin-top: 2rem;
+  }
+  
+  .fetchBtn {
+    padding: 0.65rem 1.4rem;
+
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #000000;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .fetchBtn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .card {
+    margin-top: 1rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f1f5f9;
+    line-height: 1.5;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .cardText {
+    flex: 1;
+    margin: 0;
+    word-break: break-word;
+  }
+  
+  .iconBtn {
+    margin-left: 0.5rem;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    cursor: pointer;
+  }
+  
+  .iconBtn:hover {
+    transform: scale(1.12);
+  }
+  
+  .modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modalBox {
+    width: 340px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  .modalTextarea {
+    width: 100%;
+    min-height: 96px;
+    padding: 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    resize: vertical;
+  }
+  
+  .modalActions {
+    text-align: right;
+    margin-top: 1rem;
+  }
+  
+  .secondaryBtn,
+  .primaryBtn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  .secondaryBtn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    margin-right: 0.5rem;
+  }
+  
+  .primaryBtn {
+    background: #000000;
+    color: #fff;
+    border: none;
+  }
+  
+  .primaryBtn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
